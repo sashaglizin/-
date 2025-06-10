@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фотообменник | Торговая площадка</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2962ff;
+            --primary-dark: #0039cb;
+            --secondary: #00c853;
+            --error: #ff1744;
+            --warning: #ffab00;
+            --background: #121826;
+            --surface: #1a2236;
+            --surface-light: #232d44;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--background);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Шапка */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--surface-light);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            background: var(--primary);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mode-switch {
+            background: var(--surface);
+            border-radius: 30px;
+            padding: 5px;
+            display: flex;
+            border: 1px solid var(--surface-light);
+        }
+
+        .mode-btn {
+            padding: 10px 25px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(41, 98, 255, 0.3);
+        }
+
+        /* Основной контент */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            color: var(--primary);
+        }
+
+        /* График */
+        .chart-container {
+            height: 320px;
+            position: relative;
+        }
+
+        /* Список людей */
+        .person-list {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .person-card {
+            background: var(--surface-light);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .person-card:hover {
+            border-color: var(--primary);
+        }
+
+        .person-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            border: 3px solid var(--primary);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+        }
+
+        .person-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .person-stats {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-primary);
+            margin-top: 3px;
+        }
+
+        .person-price {
+            font-size: 24px;
+            font-weight: 800;
+            margin: 15px 0;
+            color: var(--secondary);
+        }
+
+        .price-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .price-change.up {
+            color: var(--secondary);
+        }
+
+        .price-change.down {
+            color: var(--error);
+        }
+
+        /* Калькулятор */
+        .calculator {
+            margin-top: 20px;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .calc-input, .calc-select {
+            padding: 14px;
+            background: var(--surface-light);
+            border: 1px solid #2a3a5a;
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .calc-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23296eff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
+        }
+
+        .calc-btn {
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .calc-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .exchange-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: var(--surface-light);
+            border-radius: 12px;
+            text-align: center;
+            font-size: 20px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .result-value {
+            font-weight: 800;
+            color: var(--secondary);
+            font-size: 24px;
+        }
+
+        /* Админ-панель */
+        .admin-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .control-group {
+            background: var(--surface-light);
+            padding: 20px;
+            border-radius: 14px;
+        }
+
+        .control-title {
+            font-size: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-container {
+            margin-bottom: 20px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            background: #2a3a5a;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(41, 98, 255, 0.5);
+        }
+
+        .save-btn {
+            grid-column: span 3;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+
+        .save-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(41, 98, 255, 0.4);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 1100px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .save-btn {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .person-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .exchange-icon {
+                transform: rotate(90deg);
+                padding: 10px 0;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-camera-retro"></i>
+                </div>
+                <div class="logo-text">ФОТООБМЕННИК</div>
+            </div>
+            <div class="mode-switch">
+                <button class="mode-btn user-btn active" data-panel="user">
+                    <i class="fas fa-user"></i> Пользователь
+                </button>
+                <button class="mode-btn admin-btn" data-panel="admin">
+                    <i class="fas fa-lock"></i> Админ
+                </button>
+            </div>
+        </header>
+
+        <!-- Пользовательская панель -->
+        <div class="panel user-panel active">
+            <div class="dashboard">
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-chart-line"></i> Динамика цен на фотографии
+                    </h2>
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-users"></i> Торгуемые фотографии
+                    </h2>
+                    <div class="person-list" id="personList">
+                        <!-- Список людей будет сгенерирован JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card calculator">
+                <h2 class="card-title">
+                    <i class="fas fa-calculator"></i> Калькулятор обмена
+                </h2>
+                <div class="calculator-grid">
+                    <select class="calc-select" id="calcFrom">
+                        <option value="ksusha">Ксюша</option>
+                        <option value="vlada">Влада</option>
+                        <option value="mila">Миля</option>
+                    </select>
+                    
+                    <input type="number" class="calc-input" id="calcAmount" placeholder="Количество" min="1" value="1">
+                    
+                    <div class="exchange-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    
+                    <select class="calc-select" id="calcTo">
+                        <option value="ksusha">Ксюша</option>
+                        <option value="vlada">Влада</option>
+                        <option value="mila">Миля</option>
+                    </select>
+                    
+                    <button class="calc-btn" id="calcBtn">
+                        <i class="fas fa-sync-alt"></i> Рассчитать
+                    </button>
+                </div>
+                <div class="result" id="calcResult">
+                    Результат обмена: <span class="result-value" id="resultValue">0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Админ панель -->
+        <div class="panel admin-panel">
+            <div class="card">
+                <h2 class="card-title">
+                    <i class="fas fa-cog"></i> Панель управления параметрами
+                </h2>
+                <div class="admin-controls">
+                    <!-- Контролы для Ксюши -->
+                    <div class="control-group">
+                        <h3 class="control-title">
+                            <i class="fas fa-user-circle" style="color: #FF6B6B;"></i> Ксюша
+                        </h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Количество фото</span>
+                                <span class="slider-value" id="ksushaCountValue">10</span>
+                            </div>
+                            <input type="range" class="slider" id="ksushaCount" min="1" max="100" value="10">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Сложность (0-3)</span>
+                                <span class="slider-value" id="ksushaDifficultyValue">1.0</span>
+                            </div>
+                            <input type="range" class="slider" id="ksushaDifficulty" min="0" max="3" step="0.1" value="1.0">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Репутация (1-3)</span>
+                                <span class="slider-value" id="ksushaReputationValue">2.0</span>
+                            </div>
+                            <input type="range" class="slider" id="ksushaReputation" min="1" max="3" step="0.1" value="2.0">
+                        </div>
+                    </div>
+
+                    <!-- Контролы для Влады -->
+                    <div class="control-group">
+                        <h3 class="control-title">
+                            <i class="fas fa-user-circle" style="color: #4ECDC4;"></i> Влада
+                        </h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Количество фото</span>
+                                <span class="slider-value" id="vladaCountValue">15</span>
+                            </div>
+                            <input type="range" class="slider" id="vladaCount" min="1" max="100" value="15">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Сложность (0-3)</span>
+                                <span class="slider-value" id="vladaDifficultyValue">1.5</span>
+                            </div>
+                            <input type="range" class="slider" id="vladaDifficulty" min="0" max="3" step="0.1" value="1.5">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Репутация (1-3)</span>
+                                <span class="slider-value" id="vladaReputationValue">2.5</span>
+                            </div>
+                            <input type="range" class="slider" id="vladaReputation" min="1" max="3" step="0.1" value="2.5">
+                        </div>
+                    </div>
+
+                    <!-- Контролы для Мили -->
+                    <div class="control-group">
+                        <h3 class="control-title">
+                            <i class="fas fa-user-circle" style="color: #FFD166;"></i> Миля
+                        </h3>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Количество фото</span>
+                                <span class="slider-value" id="milaCountValue">8</span>
+                            </div>
+                            <input type="range" class="slider" id="milaCount" min="1" max="100" value="8">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Сложность (0-3)</span>
+                                <span class="slider-value" id="milaDifficultyValue">2.0</span>
+                            </div>
+                            <input type="range" class="slider" id="milaDifficulty" min="0" max="3" step="0.1" value="2.0">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Репутация (1-3)</span>
+                                <span class="slider-value" id="milaReputationValue">3.0</span>
+                            </div>
+                            <input type="range" class="slider" id="milaReputation" min="1" max="3" step="0.1" value="3.0">
+                        </div>
+                    </div>
+
+                    <button class="save-btn" id="saveBtn">
+                        <i class="fas fa-save"></i> Сохранить изменения
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные о людях
+        let people = {
+            ksusha: {
+                name: "Ксюша",
+                color: "#FF6B6B",
+                photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80",
+                count: 10,
+                difficulty: 1.0,
+                reputation: 2.0,
+                price: 0,
+                prevPrice: 0
+            },
+            vlada: {
+                name: "Влада",
+                color: "#4ECDC4",
+                photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80",
+                count: 15,
+                difficulty: 1.5,
+                reputation: 2.5,
+                price: 0,
+                prevPrice: 0
+            },
+            mila: {
+                name: "Миля",
+                color: "#FFD166",
+                photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80",
+                count: 8,
+                difficulty: 2.0,
+                reputation: 3.0,
+                price: 0,
+                prevPrice: 0
+            }
+        };
+
+        let chart = null;
+        let priceHistory = {
+            ksusha: [0, 0, 0, 0, 0],
+            vlada: [0, 0, 0, 0, 0],
+            mila: [0, 0, 0, 0, 0]
+        };
+
+        // Функция для расчета цен
+        function calculatePrices() {
+            // Сохраняем предыдущие цены для сравнения
+            for (const person in people) {
+                people[person].prevPrice = people[person].price;
+            }
+
+            // Рассчитываем базовую цену для каждого человека
+            for (const person in people) {
+                const p = people[person];
+                // Формула: (репутация * сложность) / количество
+                // Чем выше репутация и сложность, и чем меньше количество - тем выше цена
+                p.price = (p.reputation * p.difficulty) / p.count * 100;
+            }
+
+            // Нормализуем цены, чтобы минимальная была 10
+            const minPrice = Math.min(...Object.values(people).map(p => p.price));
+            const scaleFactor = 10 / minPrice;
+
+            for (const person in people) {
+                people[person].price = Math.round(people[person].price * scaleFactor);
+            }
+
+            // Обновляем историю цен
+            for (const person in priceHistory) {
+                priceHistory[person].shift(); // Удаляем самое старое значение
+                priceHistory[person].push(people[person].price); // Добавляем новое
+            }
+
+            updateUI();
+        }
+
+        // Обновление интерфейса
+        function updateUI() {
+            // Обновляем список людей
+            const personList = document.getElementById('personList');
+            personList.innerHTML = '';
+
+            for (const person in people) {
+                const p = people[person];
+                const priceChange = p.price - p.prevPrice;
+                const changePercent = p.prevPrice ? ((priceChange / p.prevPrice) * 100).toFixed(2) : 0;
+                
+                const personCard = document.createElement('div');
+                personCard.className = 'person-card';
+                personCard.innerHTML = `
+                    <div class="person-photo" style="background: linear-gradient(45deg, ${p.color}, #121826);"></div>
+                    <div class="person-name">${p.name}</div>
+                    <div class="person-stats">
+                        <div class="stat-item">
+                            <span>Фото</span>
+                            <div class="stat-value">${p.count}</div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Сложность</span>
+                            <div class="stat-value">${p.difficulty}</div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Репутация</span>
+                            <div class="stat-value">${p.reputation}</div>
+                        </div>
+                    </div>
+                    <div class="person-price">${p.price} баллов</div>
+                    <div class="price-change ${priceChange >= 0 ? 'up' : 'down'}">
+                        <i class="fas fa-caret-${priceChange >= 0 ? 'up' : 'down'}"></i>
+                        ${Math.abs(priceChange)} (${Math.abs(changePercent)}%)
+                    </div>
+                `;
+                personList.appendChild(personCard);
+            }
+
+            // Обновляем график
+            updateChart();
+        }
+
+        // Обновление графика
+        function updateChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            const labels = ['-4ч', '-3ч', '-2ч', '-1ч', 'Сейчас'];
+            const datasets = [];
+            
+            for (const person in people) {
+                const p = people[person];
+                datasets.push({
+                    label: p.name,
+                    data: priceHistory[person],
+                    borderColor: p.color,
+                    backgroundColor: p.color + '40',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointBackgroundColor: p.color,
+                    tension: 0.3,
+                    fill: false
+                });
+            }
+
+            if (chart) {
+                chart.data.labels = labels;
+                chart.data.datasets = datasets;
+                chart.update();
+            } else {
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e0e0e0',
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(26, 34, 54, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${context.parsed.y} баллов`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'index',
+                            intersect: false
+                        },
+                        animations: {
+                            tension: {
+                                duration: 1000,
+                                easing: 'linear'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Переключение между панелями
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                document.querySelector(`.${this.dataset.panel}-panel`).classList.add('active');
+            });
+        });
+
+        // Калькулятор обмена
+        document.getElementById('calcBtn').addEventListener('click', function() {
+            const from = document.getElementById('calcFrom').value;
+            const to = document.getElementById('calcTo').value;
+            const amount = parseInt(document.getElementById('calcAmount').value);
+            
+            if (from === to) {
+                document.getElementById('resultValue').textContent = 'Выберите разных людей';
+                return;
+            }
+            
+            if (isNaN(amount)) {
+                document.getElementById('resultValue').textContent = 'Введите число';
+                return;
+            }
+            
+            const fromPrice = people[from].price;
+            const toPrice = people[to].price;
+            
+            const result = (amount * fromPrice) / toPrice;
+            
+            document.getElementById('resultValue').textContent = result.toFixed(2);
+            document.getElementById('calcResult').classList.add('pulse');
+            setTimeout(() => {
+                document.getElementById('calcResult').classList.remove('pulse');
+            }, 1000);
+        });
+
+        // Обновление значений слайдеров в реальном времени
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', function() {
+                const valueSpan = document.getElementById(`${this.id}Value`);
+                valueSpan.textContent = parseFloat(this.value).toFixed(1);
+            });
+        });
+
+        // Сохранение изменений в админке
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            // Обновляем данные для Ксюши
+            people.ksusha.count = parseInt(document.getElementById('ksushaCount').value);
+            people.ksusha.difficulty = parseFloat(document.getElementById('ksushaDifficulty').value);
+            people.ksusha.reputation = parseFloat(document.getElementById('ksushaReputation').value);
+            
+            // Обновляем данные для Влады
+            people.vlada.count = parseInt(document.getElementById('vladaCount').value);
+            people.vlada.difficulty = parseFloat(document.getElementById('vladaDifficulty').value);
+            people.vlada.reputation = parseFloat(document.getElementById('vladaReputation').value);
+            
+            // Обновляем данные для Мили
+            people.mila.count = parseInt(document.getElementById('milaCount').value);
+            people.mila.difficulty = parseFloat(document.getElementById('milaDifficulty').value);
+            people.mila.reputation = parseFloat(document.getElementById('milaReputation').value);
+            
+            // Пересчитываем цены
+            calculatePrices();
+            
+            // Анимация подтверждения
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.innerHTML = '<i class="fas fa-check"></i> Изменения сохранены!';
+            saveBtn.style.background = 'var(--secondary)';
+            setTimeout(() => {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Сохранить изменения';
+                saveBtn.style.background = 'var(--primary)';
+            }, 2000);
+        });
+
+        // Инициализация
+        function init() {
+            // Инициализируем историю цен
+            for (const person in people) {
+                // Рассчитываем начальные цены
+                const p = people[person];
+                p.price = (p.reputation * p.difficulty) / p.count * 100;
+                
+                // Заполняем историю начальными значениями
+                priceHistory[person] = [p.price, p.price, p.price, p.price, p.price];
+            }
+            
+            // Нормализуем цены
+            calculatePrices();
+            
+            // Устанавливаем начальные значения для слайдеров в админке
+            document.getElementById('ksushaCountValue').textContent = people.ksusha.count;
+            document.getElementById('ksushaDifficultyValue').textContent = people.ksusha.difficulty.toFixed(1);
+            document.getElementById('ksushaReputationValue').textContent = people.ksusha.reputation.toFixed(1);
+            
+            document.getElementById('vladaCountValue').textContent = people.vlada.count;
+            document.getElementById('vladaDifficultyValue').textContent = people.vlada.difficulty.toFixed(1);
+            document.getElementById('vladaReputationValue').textContent = people.vlada.reputation.toFixed(1);
+            
+            document.getElementById('milaCountValue').textContent = people.mila.count;
+            document.getElementById('milaDifficultyValue').textContent = people.mila.difficulty.toFixed(1);
+            document.getElementById('milaReputationValue').textContent = people.mila.reputation.toFixed(1);
+        }
+
+        // Запускаем инициализацию при загрузке
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
